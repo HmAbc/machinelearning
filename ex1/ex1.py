@@ -17,18 +17,17 @@ data = pd.read_csv(path, header=None, names=['Population', 'Profit'])
 # data.plot(kind='scatter', x='Population', y='Profit')
 # plt.show()
 
-theta = [0, 0]
 
 # 定义代价函数
 def compute_cost(X, y, theta):
     inner = np.power(((X * theta.T) - y), 2)
-    return np.sum(inner) / 2*len(X)
+    return np.sum(inner) / (2*len(X))
 
 # 构造 X 矩阵
 def get_X(df):
     ones = pd.DataFrame({'ones': np.ones(len(df))})
     data_new = pd.concat([ones, df], axis=1)
-    return data_new.iloc[:, :-1].as_matrix()
+    return data_new.iloc[:, :-1].values
 
 # 构造 y
 def get_y(df):
@@ -38,7 +37,11 @@ def get_y(df):
 def normalize_feature(df):
     return df.apply(lambda column : (column - column.mean()) / column.std())
 
-X = get_X(data)
-y = get_y(data)
+X = np.asmatrix(get_X(data))
+y = np.asmatrix(get_y(data))
+theta = np.asmatrix([0, 0])
+# print(X.shape, y.shape)
 
-# print(X.shape, y.shap(e)
+print(compute_cost(X, y, theta))
+
+def gradient_descent(X, y, theta, alpha, iters):
