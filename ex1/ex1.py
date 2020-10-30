@@ -17,22 +17,28 @@ data = pd.read_csv(path, header=None, names=['Population', 'Profit'])
 # data.plot(kind='scatter', x='Population', y='Profit')
 # plt.show()
 
+theta = [0, 0]
+
 # 定义代价函数
 def compute_cost(X, y, theta):
     inner = np.power(((X * theta.T) - y), 2)
     return np.sum(inner) / 2*len(X)
 
 # 构造 X 矩阵
-def get_X(data):
-    ones = pd.DataFrame('ones', np.ones(len(data)))
-    data_new = pd.concat([ones, data], axis=1)
+def get_X(df):
+    ones = pd.DataFrame({'ones': np.ones(len(df))})
+    data_new = pd.concat([ones, df], axis=1)
     return data_new.iloc[:, :-1].as_matrix()
 
 # 构造 y
-def get_y(data):
-    return np.array(data.iloc[:, -1:])
+def get_y(df):
+    return np.array(df.iloc[:, -1:])
 
 # 特征缩放 mean 函数求均值，std 函数求标准差
-def normalize_feature(data):
-    return data.apply(lambda column : (column - column.mean()) / column.std())
+def normalize_feature(df):
+    return df.apply(lambda column : (column - column.mean()) / column.std())
 
+X = get_X(data)
+y = get_y(data)
+
+# print(X.shape, y.shap(e)
