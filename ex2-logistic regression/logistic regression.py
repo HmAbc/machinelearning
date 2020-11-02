@@ -38,7 +38,7 @@ def cost(theta, X, y):
 def get_X_y(df):
     df.insert(0, 'one', 1)
     X = np.asmatrix(df.iloc[:, :-1].values)
-    y = np.asmatrix(df.iloc[:, -1:].values)
+    y = np.asmatrix(df.iloc[:, -1].values)
     return X, y
 
 # 函数定义了一次梯度计算的值
@@ -46,9 +46,8 @@ def gradient(theta, X, y):
     return 1/len(X) * X.T * (sigmoid(X * theta.T) - y)
 
 X, y = get_X_y(data)
-theta = np.asmatrix(np.zeros(X.shape[1]))
+theta = np.asmatrix(np.zeros((X.shape[1], 1)))
 
-# print(gradient(theta, X, y))
 # 使用优化算法找出最优参数
 result = opt.fmin_tnc(func=cost, x0=theta, fprime=gradient, args=(X, y))
 print(result)
