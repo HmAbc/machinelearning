@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 A = np.eye(5)
 print(A)
 
-# 这三句代码表示从文件读取数据保存为 dataFrame
+# 从文件读取数据保存为 dataFrame
 path = './ex1data1.txt'
 data = pd.read_csv(path, header=None, names=['Population', 'Profit'])
 
