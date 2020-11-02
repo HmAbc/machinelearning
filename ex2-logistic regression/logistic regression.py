@@ -30,24 +30,41 @@ def sigmoid(x):
 
 # 代价函数
 def cost(theta, X, y):
-    htheta = sigmoid(X * theta.T)
+    X = np.asmatrix(X)
+    y = np.asmatrix(y)
+    theta = np.asmatrix(theta)
+    htheta = sigmoid(X @ theta.T)
     temp = np.multiply(-y, np.log(htheta)) - np.multiply(1-y, np.log(1-htheta))
     return np.sum(temp) / X.shape[0]
 
 # 返回特征值和监督信息
 def get_X_y(df):
     df.insert(0, 'one', 1)
-    X = np.asmatrix(df.iloc[:, :-1].values)
-    y = np.asmatrix(df.iloc[:, -1].values)
+    X = df.iloc[:, :-1].values
+    y = df.iloc[:, -1:].values
     return X, y
 
 # 函数定义了一次梯度计算的值
 def gradient(theta, X, y):
-    return 1/len(X) * X.T * (sigmoid(X * theta.T) - y)
+    theta = np.asmatrix(theta)
+    X = np.asmatrix(X)
+    y = np.asmatrix(y)
+    return 1/len(X) * X.T @ (sigmoid(X @ theta.T) - y)
+
+def predict(theta, X):
+    prob = sigmoid(X @ theta.T)
+    return [1 if x >= 0.5 else 0 for x in prob]
 
 X, y = get_X_y(data)
-theta = np.asmatrix(np.zeros((X.shape[1], 1)))
+theta = np.zeros(X.shape[1])
 
 # 使用优化算法找出最优参数
 result = opt.fmin_tnc(func=cost, x0=theta, fprime=gradient, args=(X, y))
-print(result)
+
+theta_min = result[0]
+
+y_predit = predict(theta_min, X)
+
+correct = [1 if ((a==1 and b==1) or (a==0 and b==0)) else 0 for (a, b) in zip(y, y_predit)]
+accuracy = np.sum(correct)/len(correct)
+print("accuracy = {}%".format(accuracy * 100))
