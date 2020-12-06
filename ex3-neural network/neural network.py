@@ -3,108 +3,49 @@
 
 import numpy as np
 from scipy.io import loadmat
-import matplotlib.pyplot as plt
-import matplotlib
-from scipy.optimize import minimize
 from sklearn.metrics import classification_report
 
-data = loadmat('./ex3data1.mat')
-m = data['X'].shape[0]
+weightpath = './ex3weights.mat'
+datapath = './ex3data1.mat'
 
-# print(data['X'].shape, data['y'].shape)
-# 随机从数据中选择100个
-def random_choice(data):
-    sample_idx = np.random.choice(np.arange(data['X'].shape[0]), 100)
-    sample_image = data['X'][sample_idx, :]
-    return sample_image
+# 读取训练数据，手写数字图片
+def load_data(datapath):
+    data = loadmat(datapath)
+    X = data['X']
+    X = np.asmatrix(np.insert(X, 0, values=np.ones(data['X'].shape[0]), axis=1))
+    y = np.asmatrix(data['y'])
+    return X, y
 
-# 画图展示随机选取的样本
-def show_images(sample_image):
-    fig, ax_array = plt.subplots(ncols=10, nrows=10, sharex=True, sharey=True, figsize=(12, 12))
-    for x in range(10):
-        for y in range(10):
-            ax_array[x, y].matshow(np.array(sample_image[10*x + y].reshape(20, 20)).T, cmap=matplotlib.cm.binary)
-            plt.xticks(np.array([]))
-            plt.yticks(np.array([]))
+# 从mat文件读取训练好的权重数据
+def load_weight(weightpath):
+    weight = loadmat(weightpath)
+    theta1, theta2 = weight['Theta1'], weight['Theta2']
+    print(theta1.shape, theta2.shape)
+    return theta1, theta2
 
-# # 调用函数展示100张图像
-# sample_image = random_choice(data)
-# show_images(sample_image)
-# plt.show()
+# 前馈神经网络
+def neural_network(X, theta1, theta2):
+    a1 = X
+    z2 = a1 * theta1.T
+    print(z2.shape)
+    a2 = sigmoid(z2)
 
+    a2 = np.asmatrix(np.insert(a2, 0, values=np.ones(a2.shape[0]), axis=1))
+
+    z3 = a2 * theta2.T
+    print(z3.shape)
+    a3 = sigmoid(z3)
+    y_predict = np.argmax(a3, axis=1) + 1
+    return y_predict
+#
+# print(theta1.shape, theta2.shape)
+
+# sigmoid函数
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-# 定义代价函数
-def cost(theta, X, y, learnrating, m):
-    theta = np.asmatrix(theta)
-    X = np.asmatrix(X)
-    y = np.asmatrix(y)
-
-    first = np.multiply(-y, np.log(sigmoid(X * theta.T)))
-    second = np.multiply(1 - y, np.log(1 - sigmoid(X * theta.T)))
-    reg = learnrating * np.sum(np.power(theta[:, 1:], 2)) / (2 * m)
-    return np.sum(first - second) / m + reg
-
-# 定义梯度下降函数
-def gradient(theta, X, y, learnrating, m):
-    theta = np.asmatrix(theta)
-    X = np.asmatrix(X)
-    y = np.asmatrix(y)
-
-    parameter = int(theta.ravel().shape[1])
-    error = sigmoid(X * theta.T) - y
-
-    grad = ((X.T * error) / m).T + (learnrating / m) * theta
-    grad[0, 0] = np.sum(np.multiply(error, X[:, 0])) / m
-
-    return np.array(grad).ravel()
-
-# 一对多分类
-def one_vs_all(X, y, num_label, learningrate, m):
-    rows = X.shape[0]
-    params = X.shape[1]
-
-    all_theta = np.zeros((num_label, params + 1))
-
-    X = np.insert(X, 0, values=np.ones(rows), axis=1)
-    for i in range(1, num_label + 1):
-        theta = np.zeros(params + 1)
-        y_i = np.array([1 if label == i else 0 for label in y])
-        y_i = np.reshape(y_i,(rows, 1))
-
-        fmin = minimize(fun=cost, x0=theta, args=(X, y_i, learningrate, m), method='TNC', jac=gradient)
-        all_theta[i-1, :] = fmin.x
-
-    return all_theta
-
-all_theta = one_vs_all(data['X'], data['y'], 10, 0.1, m)
-
-
-def predict_all(X, all_theta):
-    rows = X.shape[0]
-    params = X.shape[1]
-    num_labels = all_theta.shape[0]
-    print(all_theta.shape)
-
-    # same as before, insert ones to match the shape
-    X = np.insert(X, 0, values=np.ones(rows), axis=1)
-
-    # convert to matrices
-    X = np.asmatrix(X)
-    all_theta = np.asmatrix(all_theta)
-
-    # compute the class probability for each class on each training instance
-    h = sigmoid(X * all_theta.T)
-    print(h.shape)
-    # create array of the index with the maximum probability
-    h_argmax = np.argmax(h, axis=1)
-
-
-    # because our array was zero-indexed we need to add one for the true label prediction
-    h_argmax = h_argmax + 1
-
-    return h_argmax
-
-y_pred = predict_all(data['X'], all_theta)
-print(classification_report(data['y'], y_pred))
+if __name__ == '__main__':
+    X, y = load_data(datapath)
+    theta1, theta2 = load_weight(weightpath)
+    y_predict = neural_network(X, theta1, theta2)
+    print(classification_report(y, y_predict))
